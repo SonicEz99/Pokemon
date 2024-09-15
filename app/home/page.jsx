@@ -12,7 +12,25 @@ function Pokedata() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  
+  const [filteredFavoritePoke, setFilteredFavoritePoke] = useState([]);
+  const [allpokemon, setallPokemon] = useState([]);
+
+  const fetchPokeData = async () => {
+    try {
+      const response = await axios.get("/api/pokemon"); // Adjust API endpoint
+      const allPokemon = response.data;
+      
+      // Filter Pokémon where fav_id === 2
+      const filteredPoke = Array.isArray(allPokemon)
+        ? allPokemon.filter((owner) => owner.fav_id === 2)
+        : [];
+
+      setallPokemon(allPokemon); // Set all Pokémon
+      setFilteredFavoritePoke(filteredPoke); // Set filtered favorite Pokémon
+    } catch (error) {
+      console.error("Error fetching Pokémon data:", error);
+    }
+  };
 
   const fetchPokeData1 = async () => {
     try {
@@ -25,24 +43,6 @@ function Pokedata() {
   };
 
   useEffect(() => {
-    setLoading(true);
-    const fetchPokeData = async () => {
-      try {
-        const response = await fetch("/api/pokemon");
-        // const Poke = await response.json();
-        const data = response.data;
-        setPokemon(data || []);
-
-        // Check if Poke.results exists, otherwise use an empty array
-        // setPokemon(Poke.results || []);
-        console.log(data);
-      } catch (error) {
-        console.log(error);
-      }
-
-      setLoading(false);
-    };
-
     fetchPokeData();
     fetchPokeData1();
   }, []);
@@ -57,30 +57,96 @@ function Pokedata() {
       )
     : [];
 
-    const filteredFavoritePoke = Array.isArray(pokemon)
-    ? pokemon.filter((owner) =>
-        owner.fav_id == 2)
-
-    : [];
-
-  const showPokeDetails = (poke) => {
-    Swal.fire({
-      title: poke.poke_name,
-      html: `
-        <div style="display: flex; justify-content: center; align-items: center; flex-direction: column;">
-          <img src="${poke.img}" width="150" height="150" alt="${poke.poke_name}" />
-          <p>${poke.poke_detail}</p>
-        </div>`,
-      showCloseButton: true,
-      focusConfirm: false,
-      background: "rgba(255, 255, 255)", // สีพื้นหลังขาวโปร่งแสง
-      text: "rgba(255, 255, 255)",
-      confirmButtonText: "ADD TO FAVORITE",
-      customClass: {
-        popup: "blur-background", // ใช้คลาสนี้สำหรับ custom style
-      },
-    });
-  };
+    const showPokeDetails = (poke) => {
+      Swal.fire({
+        title: poke.poke_name,
+        html: `
+          <div style="display: flex; justify-content: center; align-items: center; flex-direction: column;">
+            <img src="${poke.img}" width="150" height="150" alt="${poke.poke_name}" />
+            <p>${poke.poke_detail}</p>
+          </div>`,
+        showCloseButton: true,
+        focusConfirm: false,
+        background: "rgba(255, 255, 255)",
+        confirmButtonText: "ADD TO FAVORITE",
+        customClass: {
+          popup: "blur-background",
+        },
+        preConfirm: () => {
+          // Send a PUT request when the user clicks "ADD TO FAVORITE"
+          return axios
+            .put(`http://localhost:3000/api/pokemon/${poke.id}`, { id: poke.id }) // Axios automatically stringifies the body
+            .then((response) => {
+              // Axios treats HTTP errors differently; no need to check response.ok
+              if (response.status !== 200) {
+                throw new Error(response.statusText);
+              }
+              // Handle success response
+              Swal.fire({
+                icon: "success",
+                title: "Added to Favorites!",
+                text: `Pokémon ${poke.poke_name} was successfully added.`,
+              });
+              
+            })
+            .catch((error) => {
+              // Handle error response
+              Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: `Something went wrong: ${error.message}`,
+              });
+            });
+        },
+      });
+    fetchPokeData();  
+    fetchPokeData1();
+    };
+    
+    const showPokeDetails2 = (poke) => {
+      Swal.fire({
+        title: poke.poke_name,
+        html: `
+          <div style="display: flex; justify-content: center; align-items: center; flex-direction: column;">
+            <img src="${poke.img}" width="150" height="150" alt="${poke.poke_name}" />
+            <p>${poke.poke_detail}</p>
+          </div>`,
+        showCloseButton: true,
+        focusConfirm: false,
+        background: "rgba(255, 255, 255)",
+        confirmButtonText: "UNFAVORITE",
+        customClass: {
+          popup: "blur-background",
+        },
+        preConfirm: () => {
+          // Send a PUT request when the user clicks "ADD TO FAVORITE"
+          return axios
+            .put(`http://localhost:3000/api/unfav/${poke.id}`, { id: poke.id }) // Axios automatically stringifies the body
+            .then((response) => {
+              // Axios treats HTTP errors differently; no need to check response.ok
+              if (response.status !== 200) {
+                throw new Error(response.statusText);
+              }
+              // Handle success response
+              Swal.fire({
+                icon: "success",
+                title: "Remove from Favorites!",
+                text: `Pokémon ${poke.poke_name} was successfully removed.`,
+              });
+            })
+            .catch((error) => {
+              // Handle error response
+              Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: `Something went wrong: ${error.message}`,
+              });
+            });
+        },
+      });
+    fetchPokeData();  
+    fetchPokeData1();
+    };
 
   //     `<style>
   //   .blur-background {
@@ -148,7 +214,7 @@ function Pokedata() {
               <div
                 className="flex justify-center items-center shadow-md translate cursor-pointer hover:shadow-lg m-3 rounded-md"
                 key={val.poke_name}
-                onClick={() => showPokeDetails(val)} // Call SweetAlert modal on click
+                onClick={() => showPokeDetails2(val)} // Call SweetAlert modal on click
               >
                 <div>
                   <h3>{val.poke_name}</h3>
@@ -167,7 +233,7 @@ function Pokedata() {
               </div>
             ))
           ) : (
-            <p>No Favorite Pokemon data available</p>
+            <p className="mt-5">No Favorite Pokemon data available</p>
           )}
         </div>
       )}
