@@ -1,17 +1,17 @@
-import { query } from "../../lib/db";
+import { query } from "@/app/lib/db";
 import { NextResponse } from "next/server";
 
 export async function PUT(req, { params }) {
   try {
     const id = Number(params.id);
-
+    console.log(id);
+    
     if (isNaN(id)) {
       return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
     }
 
     const result = await query(
-      "UPDATE pokemon SET fav_id = $1 WHERE id = $2 RETURNING *",
-      [2, id]
+      "UPDATE pokemon SET fav_id = 2 WHERE id =" + id,
     );
 
     if (result.rowCount === 0) {
@@ -23,9 +23,9 @@ export async function PUT(req, { params }) {
 
     return NextResponse.json({
       message: "Update Successful!",
-      updatedRecord: result.rows[0],
+      updatedRecord: id,
     });
   } catch (err) {
-    return NextResponse.json({ err: err.message });
+    return NextResponse.json({ err: err.message }, err);
   }
 }
