@@ -57,6 +57,7 @@ function Pokedata() {
       )
     : [];
 
+
     const showPokeDetails = (poke) => {
       Swal.fire({
         title: poke.poke_name,
@@ -75,9 +76,8 @@ function Pokedata() {
         preConfirm: () => {
           // Send a PUT request when the user clicks "ADD TO FAVORITE"
           return axios
-            .put(`http://localhost:3000/api/pokemon/${poke.id}`, { id: poke.id }) // Axios automatically stringifies the body
+            .put(`http://localhost:3000/api/pokemon/${poke.id}`, { id: poke.id })
             .then((response) => {
-              // Axios treats HTTP errors differently; no need to check response.ok
               if (response.status !== 200) {
                 throw new Error(response.statusText);
               }
@@ -86,8 +86,10 @@ function Pokedata() {
                 icon: "success",
                 title: "Added to Favorites!",
                 text: `Pokémon ${poke.poke_name} was successfully added.`,
+              }).then(() => {
+                // Reload the page after success
+                window.location.reload();
               });
-              
             })
             .catch((error) => {
               // Handle error response
@@ -99,10 +101,11 @@ function Pokedata() {
             });
         },
       });
-    fetchPokeData();  
-    fetchPokeData1();
     };
     
+    
+
+
     const showPokeDetails2 = (poke) => {
       Swal.fire({
         title: poke.poke_name,
@@ -119,19 +122,21 @@ function Pokedata() {
           popup: "blur-background",
         },
         preConfirm: () => {
-          // Send a PUT request when the user clicks "ADD TO FAVORITE"
+          // Send a PUT request when the user clicks "UNFAVORITE"
           return axios
-            .put(`http://localhost:3000/api/unfav/${poke.id}`, { id: poke.id }) // Axios automatically stringifies the body
+            .put(`http://localhost:3000/api/unfav/${poke.id}`, { id: poke.id })
             .then((response) => {
-              // Axios treats HTTP errors differently; no need to check response.ok
               if (response.status !== 200) {
                 throw new Error(response.statusText);
               }
               // Handle success response
               Swal.fire({
                 icon: "success",
-                title: "Remove from Favorites!",
+                title: "Removed from Favorites!",
                 text: `Pokémon ${poke.poke_name} was successfully removed.`,
+              }).then(() => {
+                // Reload the page after success
+                window.location.reload();
               });
             })
             .catch((error) => {
@@ -144,22 +149,9 @@ function Pokedata() {
             });
         },
       });
-    fetchPokeData();  
-    fetchPokeData1();
     };
+    
 
-  //     `<style>
-  //   .blur-background {
-  //     position: relative;
-  //     display: inline-block;
-  //     padding: 20px;
-  //     border-radius: 10px;
-  //     background-color: rgba(255, 255, 255, 0.3); /* สีพื้นหลังขาวโปร่งแสง */
-  //     backdrop-filter: blur(10px); /* ทำให้พื้นหลังเบลอ */
-  //     -webkit-backdrop-filter: blur(10px); /* สำหรับ Safari */
-  //     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  //   }
-  // </style>`
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
